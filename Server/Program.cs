@@ -66,11 +66,19 @@ namespace ChatService
 
             var data = Encoding.ASCII.GetBytes(response);
 
-            // Send data to connected socket (a method must be implemented as an argument to send callback here)
+            // Send data to connected 
             socket.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
             socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallBack), socket);
         }
 
+        private static void SendCallback(IAsyncResult AR)
+        {
+            // Retrieve the socket from the state object.  
+            var socket = (Socket)AR.AsyncState;
+
+            // Complete sending data to the remote device.  
+            socket.EndSend(AR);
+        }
 
     }
 }
