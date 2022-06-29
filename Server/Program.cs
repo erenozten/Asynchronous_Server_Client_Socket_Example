@@ -22,8 +22,25 @@ namespace ChatService
         static void Main(string[] args)
         {
             Console.Title = "SERVER SIDE";
+            StartServer();
             Console.ReadKey();
         }
+
+        private static void StartServer()
+        {
+            // Associate socket with local endpoint using IPAddress and port
+            _serverSocket.Bind(new IPEndPoint(IPAddress.Any, 100));
+
+            // Socket is in a listening state
+            _serverSocket.Listen(1);
+
+            // Accept connection from clients (a method must be implemented as an argument named like AcceptCallBack here)
+            _serverSocket.BeginAccept(new AsyncCallback(AcceptCallBackHere), null);
+
+            // Indicates that the server is ready for connection
+            Console.WriteLine("Server is ready...");
+        }
+
 
 
     }
