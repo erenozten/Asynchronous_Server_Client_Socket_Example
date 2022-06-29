@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -55,20 +56,44 @@ namespace ChatService
         {
             var socket = (Socket)ar.AsyncState;
             var received = socket.EndReceive(ar);
-
             var dataBuf = new byte[received];
             Array.Copy(_buffer, dataBuf, received);
-
             var text = Encoding.ASCII.GetString(dataBuf);
             Console.WriteLine("Text received: " + text);
-
             var response = text;
 
-            var data = Encoding.ASCII.GetBytes(response);
+            if (_requestTime == null)
+            {
+                _requestTime = DateTime.Now;
+            }
+            else
+            {
+                var secondBetweenRequests = DateTime.Now.Subtract((DateTime)_requestTime).TotalSeconds;
+                Debug.WriteLine(secondBetweenRequests);
+                _requestTime = DateTime.Now;
 
-            // Send data to connected 
-            socket.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
-            socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallBack), socket);
+                if (secondBetweenRequests <= 1)
+                {
+                    response += "WARNING! Don't send multiple messages in one second. You have been warned for the first and last time.";
+                    _warnCount++;
+
+                }
+            }
+
+            // if user is warned, close connection and send closeMessage as "CONNECTION CLOSED!" to break the connection loop
+            if (_warnCount > 1)
+            {
+                var closeMessage = Encoding.ASCII.GetBytes("CONNECTION CLOSED!");
+                socket.BeginSend(closeMessage, 0, closeMessage.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
+                socket.Close();
+            }
+            else
+            {
+                var data = Encoding.ASCII.GetBytes(response);
+                socket.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
+                socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallBack), socket);
+            }
+
         }
 
         private static void SendCallback(IAsyncResult AR)

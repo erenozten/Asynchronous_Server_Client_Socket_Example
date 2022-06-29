@@ -34,7 +34,7 @@ namespace ChatService
                 var receivedText = Encoding.ASCII.GetString(data);
                 Console.WriteLine("Received: " + receivedText);
 
-                if (receivedText == "CONNECTION CLOSED!")
+                if (receivedText == "WARNING! Don't send multiple messages in one second. You have been warned for the first and last time.")
                 {
                     break;
                 }
@@ -62,7 +62,6 @@ namespace ChatService
 
             Console.Clear();
             Console.WriteLine("Connected");
-
         }
 
     }
