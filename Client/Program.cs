@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace ChatService
 {
@@ -11,6 +12,33 @@ namespace ChatService
         {
             Console.Title = "CLIENT SIDE";
             LoopConnect();
+            SendLoop();
+        }
+
+        private static void SendLoop()
+        {
+            while (true)
+            {
+                // wait a message from client
+                Console.Write("Enter message: ");
+                var message = Console.ReadLine();
+
+                var buffer = Encoding.ASCII.GetBytes(message);
+                _clientSocket.Send(buffer);
+
+                var receivedBuf = new byte[1024];
+                var rec = _clientSocket.Receive(receivedBuf);
+
+                var data = new byte[rec];
+                Array.Copy(receivedBuf, data, rec);
+                var receivedText = Encoding.ASCII.GetString(data);
+                Console.WriteLine("Received: " + receivedText);
+
+                if (receivedText == "CONNECTION CLOSED!")
+                {
+                    break;
+                }
+            }
         }
 
         // Connection must be in a loop since we need to handle multiple messages sent by client(s) whether they sent messages in one second or not.
