@@ -47,10 +47,28 @@ namespace ChatService
             var socket = _serverSocket.EndAccept(ar);
             _clienSockets.Add(socket);
             Console.WriteLine("Client connected");
-
-            // start to get data from connected socket (a method must be implemented here as an argument to receive call back)
             socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallBack), socket);
             _serverSocket.BeginAccept(new AsyncCallback(AcceptCallBack), null);
+        }
+
+        private static void ReceiveCallBack(IAsyncResult ar)
+        {
+            var socket = (Socket)ar.AsyncState;
+            var received = socket.EndReceive(ar);
+
+            var dataBuf = new byte[received];
+            Array.Copy(_buffer, dataBuf, received);
+
+            var text = Encoding.ASCII.GetString(dataBuf);
+            Console.WriteLine("Text received: " + text);
+
+            var response = text;
+
+            var data = Encoding.ASCII.GetBytes(response);
+
+            // Send data to connected socket (a method must be implemented as an argument to send callback here)
+            socket.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
+            socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallBack), socket);
         }
 
 
