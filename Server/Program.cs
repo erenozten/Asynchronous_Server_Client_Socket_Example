@@ -34,13 +34,24 @@ namespace ChatService
             // Socket is in a listening state
             _serverSocket.Listen(1);
 
-            // Accept connection from clients (a method must be implemented as an argument named like AcceptCallBack here)
-            _serverSocket.BeginAccept(new AsyncCallback(AcceptCallBackHere), null);
+            // Accept connection from clients
+            _serverSocket.BeginAccept(new AsyncCallback(AcceptCallBack), null);
 
             // Indicates that the server is ready for connection
             Console.WriteLine("Server is ready...");
         }
 
+
+        private static void AcceptCallBack(IAsyncResult ar)
+        {
+            var socket = _serverSocket.EndAccept(ar);
+            _clienSockets.Add(socket);
+            Console.WriteLine("Client connected");
+
+            // start to get data from connected socket (a method must be implemented here as an argument to receive call back)
+            socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallBack), socket);
+            _serverSocket.BeginAccept(new AsyncCallback(AcceptCallBack), null);
+        }
 
 
     }
