@@ -6,6 +6,7 @@ namespace ChatService
 {
     class Program
     {
+        //
         private static Socket _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
         static void Main(string[] args)
@@ -19,30 +20,48 @@ namespace ChatService
         {
             while (true)
             {
-                // wait a message from client
                 Console.Write("Enter message: ");
-                var message = Console.ReadLine();
+                // wait a message from client
+                string messageToSend = Console.ReadLine();
 
-                var buffer = Encoding.ASCII.GetBytes(message);
-                _clientSocket.Send(buffer);
+                byte[] bufferToSend = Encoding.ASCII.GetBytes(messageToSend);
+                _clientSocket.Send(bufferToSend);
 
-                var receivedBuf = new byte[1024];
-                var rec = _clientSocket.Receive(receivedBuf);
+                // receivedBuf: storage for received data
+                byte[] receivedBufferAsStorage = new byte[1024];
 
-                var data = new byte[rec];
-                Array.Copy(receivedBuf, data, rec);
-                var receivedText = Encoding.ASCII.GetString(data);
-                Console.WriteLine("Received: " + receivedText);
+                // It is notable that just like in the C language, the ‘send’ and ‘receive’ methods still return the number of bytes sent or received.
 
-                if (receivedText == "WARNING! Don't send multiple messages in one second. You have been warned for the first and last time.")
+                //receives data from a bound socket into a receive buffer
+                int receivedNumberOfBytes = _clientSocket.Receive(receivedBufferAsStorage);
+
+                byte[] receivedDataAsByte = new byte[receivedNumberOfBytes];
+
+                // With Array.Copy, trimmed our array buffer (receivedBufferAsStorage)
+                // That means, if we got a message that contains 24 byte,
+                // our buffer has 1000 empty slots (1024 - 24 = 1000).
+                Array.Copy(receivedBufferAsStorage, receivedDataAsByte, receivedNumberOfBytes);
+
+                // So what we do is getting string value of trimmed byte variable. Not buffer's 1024 byte variable. See GetString method below: 
+                var receivedDataAsText = Encoding.ASCII.GetString(receivedDataAsByte);
+
+                // What would happen if we just gave our 1024 byte array (receivedBufferAsStorage) to GetString method instead of "receivedDataAsByte" like below: 
+                //var receivedDataAsText = Encoding.ASCII.GetString(receivedBufferAsStorage);
+
+                // That would create some string from these empty bits as following:
+                //"www\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+                // Thats why we use Array.Copy method and get a byte[] variable that has exactly the same slot count with the received message
+
+                Console.WriteLine("The text sent from me (client): " + receivedDataAsText);
+
+                if (receivedDataAsText == "\n \nWARNING! Don't send multiple messages in one second. You have been warned for the first and last time.\n")
                 {
                     break;
                 }
             }
         }
 
-        // Connection must be in a loop since we need to handle multiple messages sent by client(s) whether they sent messages in one second or not.
-        // If so, a warning message will shown to user, if this happens again, connection will be terminated.
+        // Connection should be in a loop since we need to handle multiple messages sent by client(s).
         private static void LoopConnect()
         {
             // if socket is not connected to remote host, try to connect:
