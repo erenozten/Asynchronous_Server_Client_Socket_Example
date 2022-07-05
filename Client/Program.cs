@@ -2,6 +2,11 @@
 using System.Net.Sockets;
 using System.Text;
 
+
+// ! See: Socket programming is a way of connecting two nodes on a network to communicate with each other.
+// Basically, it is a one-way Client and Server setup
+// where a Client connects, sends messages to the server and the server shows them using socket connection. 
+
 namespace ChatService
 {
     class Program
@@ -12,7 +17,12 @@ namespace ChatService
         static void Main(string[] args)
         {
             Console.Title = "CLIENT SIDE";
+
+            // Loop the connection request when project launches.
+            // Loop will finish when connection is made successfully.
             LoopConnect();
+
+            // When connection is made successfully, start to listen.
             SendLoop();
         }
 
@@ -63,8 +73,10 @@ namespace ChatService
                 // So naming for variables like "receiving, received" is correct (instead of "sending, sent"...)
                 Console.WriteLine("The text sent from me as a client to server and then returned back to me from server is: " + receivedDataAsText);
 
-                if (receivedDataAsText == "\n \nWARNING! Don't send multiple messages in one second. " +
-                    "You have been warned for the first and last time.\n")
+                // if receivedDataAsText is as the following, that means connection is already closed.
+                // What this break does is just not to show "Enter message" text to client.
+                // Since connection is terminated, "Enter message" text is not necessary anymore.
+                if (receivedDataAsText == "\nI WARNED YOU. CONNECTION CLOSED!\n")
                 {
                     break;
                 }
