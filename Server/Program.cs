@@ -9,15 +9,15 @@ namespace ChatService
     {
 
         private static Socket _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        private static List<Socket> _clienSockets = new List<Socket>();
+        private static List<Socket> _clientSockets = new List<Socket>();
 
-        // Receive buffer.  
+        // Used for receiving buffer.  
         private static byte[] _bufferAsStorage = new byte[1024];
 
-        // will be used for getting time when connection made
+        // Used for getting time when connection made
         private static DateTime? _requestTime;
 
-        // will be used for warn user if client sends more than one message in a second
+        // Used for warning user
         private static int _warnCount = 0;
 
         static void Main(string[] args)
@@ -49,10 +49,12 @@ namespace ChatService
             Socket socket = _serverSocket.EndAccept(ar);
 
             // ~Add socket created for client to List<Socket> _clientSockets
-            _clienSockets.Add(socket);
+            // See that we are giving "socket" argument that returned from "EndAccept" to _clientSockets
+            _clientSockets.Add(socket);
 
             Console.WriteLine("Client connected");
 
+            // ~Since we finished EndAccept process and added socket to List<Socket>, we can begin to receive data from client 
             socket.BeginReceive(_bufferAsStorage, 0, _bufferAsStorage.Length, SocketFlags.None, new AsyncCallback(ReceiveCallBack), socket);
             _serverSocket.BeginAccept(new AsyncCallback(AcceptCallBack), null);
         }
