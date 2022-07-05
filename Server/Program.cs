@@ -97,7 +97,7 @@ namespace ChatService
 
             // Messages sent in one second will also be handled here. Client can not send messages in one second.
             // If so, a warning message will shown to user, if this happens again, connection will be terminated.
-            // Send closeMessage as "CONNECTION CLOSED!" to break the connection loop
+            // Send closeMessage as "I WARNED YOU. CONNECTION CLOSED!" to break the connection loop
             if (_warnCount > 1)
             {
                 byte[] closeMessageAsByte = Encoding.ASCII.GetBytes("\nI WARNED YOU. CONNECTION CLOSED!\n");
