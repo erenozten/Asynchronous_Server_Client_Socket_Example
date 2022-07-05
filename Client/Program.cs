@@ -25,9 +25,11 @@ namespace ChatService
                 string messageToSend = Console.ReadLine();
 
                 byte[] bufferToSend = Encoding.ASCII.GetBytes(messageToSend);
+
+                //!! Sends data to a connected socket
                 _clientSocket.Send(bufferToSend);
 
-                // receivedBuf: storage for received data
+                // receivedBuf: storage for received data (the "1024" is all about text length)
                 byte[] receivedBufferAsStorage = new byte[1024];
 
                 // see: "It is notable that just like in the C language, the ‘send’ and ‘receive’ methods still return the number of bytes sent or received."
@@ -52,11 +54,14 @@ namespace ChatService
 
                 // That would create some string from these empty bits as following:
                 //"www\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\00\0" ....   // It goes as far as it goes :D
-                
+
                 // Thats why we use Array.Copy method and get a byte[] variable
                 // that has exactly the same slot count with the received message
 
-                Console.WriteLine("The text sent from me (client): " + receivedDataAsText);
+                // !!! A message is sent client to server with Console.ReadLine. Server gets this message. And sends the message back to client.
+                // So "receivedDataAsText" is the data that came from server to client right after client sends it.
+                // So naming for variables like "receiving, received" is correct (instead of "sending, sent"...)
+                Console.WriteLine("The text sent from me as a client to server and then returned back to me from server is: " + receivedDataAsText);
 
                 if (receivedDataAsText == "\n \nWARNING! Don't send multiple messages in one second. " +
                     "You have been warned for the first and last time.\n")
@@ -79,7 +84,7 @@ namespace ChatService
 
                     // we can use some port number instead of 100 to see the error message
                     // and attempts to connect to db:
-                    _clientSocket.Connect(IPAddress.Loopback, 104);
+                    _clientSocket.Connect(IPAddress.Loopback, 100);
                 }
                 catch (SocketException e)
                 {
