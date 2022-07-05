@@ -8,7 +8,12 @@ namespace ChatService
     class Program
     {
 
+        // Socket for the server, in constructor, specified protocol type as TCP
         private static Socket _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+        // Sockets are added to _clientSockets list for each socket since clients represent clients
+        // For example,if you have two client console applications
+        // you will have 2 sockets in the _clientSockets list
         private static List<Socket> _clientSockets = new List<Socket>();
 
         // Used for receiving buffer.  
@@ -32,20 +37,20 @@ namespace ChatService
             // Associate socket with local endpoint using IPAddress and port
             _serverSocket.Bind(new IPEndPoint(IPAddress.Any, 100));
 
-            // Put a socket to a 'listening' state. Pending connections count set to one:
+            // Put a socket to a 'listening' state. Pending connections count set to one (?):
             _serverSocket.Listen(1);
 
             // Create an async operation to accept incoming connection attempts from clients.
             _serverSocket.BeginAccept(new AsyncCallback(AcceptCallBack), null);
 
-            // Inform server that the server is started and ready for getting connections in console.
-            Console.WriteLine("Server is listening...");
+            // Inform server in console that the server is started and ready for getting connections.
+            Console.WriteLine("Server is started. Listening...");
         }
 
         private static void AcceptCallBack(IAsyncResult ar)
         {
             // EndAccept: Accept the connection request and create a socket to communicate with this client.
-            // EndAccep Method returns a buffer to get the transferred data.
+            // EndAccep Method returns a socket to communicate with remote host.
             Socket socket = _serverSocket.EndAccept(ar);
 
             // ~Add socket created for client to List<Socket> _clientSockets
@@ -56,6 +61,8 @@ namespace ChatService
 
             // ~Since we finished EndAccept process and added socket to List<Socket>, we can begin to receive data from client 
             socket.BeginReceive(_bufferAsStorage, 0, _bufferAsStorage.Length, SocketFlags.None, new AsyncCallback(ReceiveCallBack), socket);
+
+            // Begin to accept incoming connection attempt
             _serverSocket.BeginAccept(new AsyncCallback(AcceptCallBack), null);
         }
 
@@ -75,7 +82,7 @@ namespace ChatService
             string dataAsText = Encoding.ASCII.GetString(receivedDataAsBufferAsByte);
 
             // Show received text in Server:
-            Console.WriteLine("Text received by me (Server): " + dataAsText);
+            Console.WriteLine("Text received by me as Server: " + dataAsText);
 
             var response = dataAsText;
 
@@ -86,14 +93,13 @@ namespace ChatService
             else
             {
                 var secondBetweenRequests = DateTime.Now.Subtract((DateTime)_requestTime).TotalSeconds;
-                Debug.WriteLine(secondBetweenRequests);
+                //Debug.WriteLine(secondBetweenRequests);
                 _requestTime = DateTime.Now;
 
                 if (secondBetweenRequests <= 1)
                 {
                     response += "\n \nWARNING! Don't send multiple messages in one second. You have been warned for the first and last time.\n";
                     _warnCount++;
-
                 }
             }
 
@@ -104,14 +110,22 @@ namespace ChatService
             {
                 byte[] closeMessageAsByte = Encoding.ASCII.GetBytes("\nI WARNED YOU. CONNECTION CLOSED!\n");
 
-                // send data to connected socket:
+                // send closeMessageAsByte (encoded message) to connected socket as
+                // "I WARNED YOU. CONNECTION CLOSED!" (decoded message) to inform user that connection is closed:
                 socket.BeginSend(closeMessageAsByte, 0, closeMessageAsByte.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
+                
+                // We dont have a BeginReceive method here after BeginSend method since we are to close connection.
+                // Because _warnCount is bigger than 1, we are disconnecting socket.
+
+                // Close socket's connection
                 socket.Close();
             }
             else
             {
                 byte[] data = Encoding.ASCII.GetBytes(response);
                 socket.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
+                
+                // Begin to receive data since connection is not closed due to _warnCount is not bigger than 1.
                 socket.BeginReceive(_bufferAsStorage, 0, _bufferAsStorage.Length, SocketFlags.None, new AsyncCallback(ReceiveCallBack), socket);
             }
 
@@ -119,7 +133,7 @@ namespace ChatService
 
         private static void SendCallback(IAsyncResult AR)
         {
-            // Retrieve the socket from the state object.  
+            // Retrieve the socket from the state object.
             Socket socket = (Socket)AR.AsyncState;
 
             // Complete sending data to the remote device.  

@@ -11,7 +11,7 @@ namespace ChatService
 {
     class Program
     {
-        //
+        // A socket is a communications connection point (endpoint) that you can name and address in a network. 
         private static Socket _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
         static void Main(string[] args)
@@ -22,7 +22,8 @@ namespace ChatService
             // Loop will finish when connection is made successfully.
             LoopConnect();
 
-            // When connection is made successfully, start to listen.
+            // When connection is made successfully, start to send data
+            // When data is sent. Start to send again and again with following method:
             SendLoop();
         }
 
@@ -44,7 +45,10 @@ namespace ChatService
 
                 // see: "It is notable that just like in the C language, the ‘send’ and ‘receive’ methods still return the number of bytes sent or received."
 
-                //receives data from a bound socket into a receive buffer
+                // !!! Here we got returned message from server: _clientSocket.Receive
+                // Debug and check "receivedBufferAsStorage"
+                // and you will see that it's populated with returned data.
+                // Receives data from a bound socket into a receive buffer
                 int receivedNumberOfBytes = _clientSocket.Receive(receivedBufferAsStorage);
 
                 byte[] receivedDataAsByte = new byte[receivedNumberOfBytes];
@@ -73,7 +77,7 @@ namespace ChatService
                 // So naming for variables like "receiving, received" is correct (instead of "sending, sent"...)
                 Console.WriteLine("The text sent from me as a client to server and then returned back to me from server is: " + receivedDataAsText);
 
-                // if receivedDataAsText is as the following, that means connection is already closed.
+                // if receivedDataAsText is "I WARNED YOU. CONNECTION CLOSED!", that means connection is already closed at server side.
                 // What this break does is just not to show "Enter message" text to client.
                 // Since connection is terminated, "Enter message" text is not necessary anymore.
                 if (receivedDataAsText == "\nI WARNED YOU. CONNECTION CLOSED!\n")
