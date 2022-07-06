@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -7,6 +6,8 @@ namespace ChatService
 {
     class Program
     {
+
+        // !!! object and variable names chosen intentionally long or unappropriate, but it's just a tutarial so, here you go:
 
         // Socket for the server, in constructor, specified protocol type as TCP
         private static Socket _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -98,7 +99,7 @@ namespace ChatService
 
                 if (secondBetweenRequests <= 1)
                 {
-                    response += "\n \nWARNING! Don't send multiple messages in one second. You have been warned for the first and last time.\n";
+                    response += "\n \nWARNING! Don't send multiple messages in one second. You have been warned for the first and the last time.\n";
                     _warnCount++;
                 }
             }
