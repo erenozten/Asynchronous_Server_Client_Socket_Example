@@ -7,7 +7,7 @@ namespace ChatService
     class Program
     {
 
-        // !!! object and variable names chosen intentionally long or unappropriate, but it's just a tutarial so, here you go:
+        // !!! object and variable names chosen intentionally long or unappropriate, but it's just a tutorial so, here you go:
 
         // Socket for the server, in constructor, specified protocol type as TCP
         private static Socket _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
